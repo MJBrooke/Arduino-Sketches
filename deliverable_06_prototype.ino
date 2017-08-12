@@ -46,7 +46,7 @@ void processRestRequest(BridgeClient client) {
   String command = client.readString();
   command.trim();
 
-  if(command == "register") {
+  if(command == "deviceInformation") {
     respondWithComponentDetails(client);
   } else if (command == "temperature") {
     respondWithTemperature(client);
@@ -59,7 +59,10 @@ void respondWithComponentDetails(BridgeClient client){
     "name", "Temperature Sensor",
     "description", "Reads the temperature of the surrounding environment"
   };
-  
+
+  client.println("Status: 200");
+  client.println("Content-type: application/json");
+  client.println();
   client.println(createJsonResponse(keyValuePairs, numValues));
 }
 
@@ -111,4 +114,3 @@ String createJsonResponse(String keyValuePairs[], int numValues) {
 
   return jsonResponse;
 }
-
