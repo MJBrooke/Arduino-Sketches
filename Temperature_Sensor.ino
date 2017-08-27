@@ -6,9 +6,6 @@
 
 const int temperatureSensorPin = A0;
 
-const size_t deviceInformationBufferSize = JSON_ARRAY_SIZE(1) + JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(5) + 310;
-const size_t temperatureBufferSize = JSON_OBJECT_SIZE(1) + 20;
-
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
 BridgeServer server;
