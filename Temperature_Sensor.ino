@@ -1,9 +1,13 @@
+#include <ArduinoJson.h>
 #include <LiquidCrystal.h>
 #include <Bridge.h>
 #include <BridgeServer.h>
 #include <BridgeClient.h>
 
 const int temperatureSensorPin = A0;
+
+const size_t deviceInformationBufferSize = JSON_ARRAY_SIZE(1) + JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(5) + 310;
+const size_t temperatureBufferSize = JSON_OBJECT_SIZE(1) + 20;
 
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
@@ -15,7 +19,8 @@ void setup() {
   Serial.begin(9600);
 
   lcd.begin(16,2);
-  lcd.print("Prototype - D06");
+  lcd.setCursor(11,0);
+  lcd.print("Alpha");
 
   lcd.setCursor(1,1);
   lcd.print("-Setting Up-");
@@ -47,29 +52,55 @@ void processRestRequest(BridgeClient client) {
   command.trim();
 
   if(command == "deviceInformation") {
-    respondWithComponentDetails(client);
+    respondWithDeviceInformation(client);
   } else if (command == "temperature") {
     respondWithTemperature(client);
   }
 }
 
-void respondWithComponentDetails(BridgeClient client){
-  int numValues = 4;
-  String keyValuePairs[numValues] = {
-    "name", "Temperature Sensor",
-    "description", "Reads the temperature of the surrounding environment"
-  };
-
-  setupClientResponse(client, keyValuePairs, numValues);
+void respondWithDeviceInformation(BridgeClient client){
+  writeResponse(client, createDeviceInformationJson());
 }
 
 void respondWithTemperature(BridgeClient client) {
-  float tempCelsius = getTempInCelsius();
+  writeResponse(client, createTemperatureJson());
+}
 
-  int numValues = 2;
-  String keyValuePairs[numValues] = {"temperature", String(tempCelsius)};
+void writeResponse(BridgeClient& client, JsonObject& json) {
+  client.println("Status: 200");
+  client.println("Content-type: application/json");
+  client.println("Connection: close");
+  client.println();
+  json.printTo(client);
+}
 
-  setupClientResponse(client, keyValuePairs, numValues);
+JsonObject& createDeviceInformationJson() {
+  DynamicJsonBuffer jsonBuffer;
+
+  JsonObject& root = jsonBuffer.createObject();
+  root["name"] = "Temperature Sensor";
+  root["description"] = "Reads the ambient temperature of the surrounding atmosphere";
+  root["endpointRoot"] = "temperatureSensor";  
+  root["componentType"] = "Sensor";
+
+  JsonArray& capabilities = root.createNestedArray("capabilities");
+
+  JsonObject& readTemperatureCapability = capabilities.createNestedObject();
+
+  readTemperatureCapability["name"] = "Read Temperature";
+  readTemperatureCapability["description"] = "Reads the temperature from the surrounding atmosphere";
+  readTemperatureCapability["temperature"] = "temperature";
+
+  return root;
+}
+
+JsonObject& createTemperatureJson() {
+  DynamicJsonBuffer jsonBuffer;
+
+  JsonObject& root = jsonBuffer.createObject();
+  root["response"] = String(getTempInCelsius());
+
+  return root;
 }
 
 float getTempInCelsius() {
@@ -83,38 +114,8 @@ float getTempInCelsius() {
 }
 
 void refreshLcdTempReading() {
-  float tempCelsius = getTempInCelsius();
-  
-  lcd.setCursor(1,1);
-  lcd.print("Temp: ");
-  lcd.print(tempCelsius);
+  lcd.setCursor(0,1);
+  lcd.print("          ");
+  lcd.print(getTempInCelsius());
   lcd.print("C");
-}
-
-void setupClientResponse(BridgeClient client, String keyValuePairs[], int numValues) {
-  client.println("Status: 200");
-  client.println("Content-type: application/json");
-  client.println();
-  client.println(createJsonResponse(keyValuePairs, numValues));
-}
-
-String createJsonResponse(String keyValuePairs[], int numValues) {
-  String jsonResponse = String();
-  
-  jsonResponse += "{";
-  
-  for(int i = 0; i < numValues; i = i + 2) {
-    
-    if(i != 0) {
-      jsonResponse += ",";
-    }
-    
-    jsonResponse += "\"" + keyValuePairs[i] + "\"";
-    jsonResponse += ":";
-    jsonResponse += "\"" + keyValuePairs[i+1] + "\"";
-  }
-  
-  jsonResponse += "}";
-
-  return jsonResponse;
 }
