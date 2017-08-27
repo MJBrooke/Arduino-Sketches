@@ -16,8 +16,6 @@ BridgeServer server;
 int timeUntilLcdTemperatureRefresh = 0;
 
 void setup() {
-  Serial.begin(9600);
-
   lcd.begin(16,2);
   lcd.setCursor(11,0);
   lcd.print("Alpha");
@@ -52,18 +50,10 @@ void processRestRequest(BridgeClient client) {
   command.trim();
 
   if(command == "deviceInformation") {
-    respondWithDeviceInformation(client);
+    writeResponse(client, createDeviceInformationJson());
   } else if (command == "temperature") {
-    respondWithTemperature(client);
+    writeResponse(client, createTemperatureJson());
   }
-}
-
-void respondWithDeviceInformation(BridgeClient client){
-  writeResponse(client, createDeviceInformationJson());
-}
-
-void respondWithTemperature(BridgeClient client) {
-  writeResponse(client, createTemperatureJson());
 }
 
 void writeResponse(BridgeClient& client, JsonObject& json) {
