@@ -55,7 +55,7 @@ void rotateServo() {
   if(currentTime - previousTime > interval) {
     previousTime = currentTime;
 
-    //Maxing out my servo to 0 or 179 causes a really bad crunching noise. Hence, we alternate between 5 and 150 degrees.
+    //Maxing out my servo to 0 or 179 causes a really bad crunching noise. Hence, we alternate between 5 and 160 degrees.
     currentServoAngle = (currentServoAngle == 5) ? 160 : 5; 
     servo.write(currentServoAngle);
   }  
@@ -73,7 +73,7 @@ JsonObject& createDeviceInformationJson() {
   DynamicJsonBuffer jsonBuffer;
 
   JsonObject& root = jsonBuffer.createObject();
-  root["deviceId"] = "aircon1562";
+  root["deviceId"] = "1562651";
   root["name"] = "Aircon";
   root["description"] = "Cools or heats up the room";
   root["endpointRoot"] = "actuator"; 
@@ -96,4 +96,3 @@ JsonObject& createDeviceInformationJson() {
 
   return root;
 }
-
