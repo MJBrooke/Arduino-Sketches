@@ -14,11 +14,11 @@ int timeUntilLcdTemperatureRefresh = 0;
 
 void setup() {
   lcd.begin(16,2);
-  lcd.setCursor(11,0);
-  lcd.print("Alpha");
+  lcd.setCursor(12,0);
+  lcd.print("Beta");
 
-  lcd.setCursor(1,1);
-  lcd.print("-Setting Up-");
+  lcd.setCursor(6,1);
+  lcd.print("Setting Up");
 
   Bridge.begin();
   
@@ -46,10 +46,10 @@ void processRestRequest(BridgeClient client) {
   String command = client.readString();
   command.trim();
 
-  if(command == "deviceInformation") {
-    writeResponse(client, createDeviceInformationJson());
-  } else if (command == "temperature") {
+  if (command == "temperature") {
     writeResponse(client, createTemperatureJson());
+  } else if(command == "deviceInformation") {
+    writeResponse(client, createDeviceInformationJson());
   }
 }
 
@@ -65,10 +65,14 @@ JsonObject& createDeviceInformationJson() {
   DynamicJsonBuffer jsonBuffer;
 
   JsonObject& root = jsonBuffer.createObject();
+  root["deviceId"] = "745821";
   root["name"] = "Temperature Sensor";
   root["description"] = "Reads the ambient temperature of the surrounding atmosphere";
-  root["endpointRoot"] = "temperatureSensor";  
-  root["componentType"] = "Sensor";
+  root["endpointRoot"] = "arduino";
+    
+  JsonObject& componentType = root.createNestedObject("componentType");
+  componentType["name"] = "Sensor";
+  componentType["id"] = "1";
 
   JsonArray& capabilities = root.createNestedArray("capabilities");
 
@@ -76,7 +80,7 @@ JsonObject& createDeviceInformationJson() {
 
   readTemperatureCapability["name"] = "Read Temperature";
   readTemperatureCapability["description"] = "Reads the temperature from the surrounding atmosphere";
-  readTemperatureCapability["temperature"] = "temperature";
+  readTemperatureCapability["endpointUrl"] = "temperature";
 
   return root;
 }
@@ -85,7 +89,7 @@ JsonObject& createTemperatureJson() {
   DynamicJsonBuffer jsonBuffer;
 
   JsonObject& root = jsonBuffer.createObject();
-  root["response"] = String(getTempInCelsius());
+  root["value"] = String(getTempInCelsius());
 
   return root;
 }

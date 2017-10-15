@@ -40,9 +40,9 @@ void processRestRequest(BridgeClient client) {
   String command = client.readString();
   command.trim();
 
-  if (command == "start") {
+  if (command == "switchOn") {
     isRotating = true;
-  } else if (command == "stop") {
+  } else if (command == "switchOff") {
     isRotating = false;
   } else if (command == "deviceInformation") {
     writeResponse(client, createDeviceInformationJson());
